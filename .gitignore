@@ -1,0 +1,17 @@
+# Python env / caches
+.venv/
+__pycache__/
+*.pyc
+.voice_cache/
+
+# Generated video outputs (large); keep scripts/text via explicit add if wanted
+outputs/
+
+# Claude Code local files
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
