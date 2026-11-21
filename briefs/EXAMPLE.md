@@ -24,6 +24,7 @@ Build tension through the bouncing lines, a little faster each line.
 Deadpan on "Luckily" / "Unluckily". Calmer and slower for the swing explanation.
 
 ## Style
+Style: sci-fi-sitcom-thinline
 England 1831, a proud little red-brick mill town on a river with a new suspension bridge.
 Bright sunny day for the story; golden hour for the swing explanation.
 Comic and a bit absurd. Upbeat brass march that falls apart when the bridge does.

@@ -18,6 +18,7 @@ Long dramatic pause after the first line. Deadpan on the two "Luckily / Unluckil
 Slow down for the swing explanation.
 
 ## Style
+Style: sci-fi-sitcom-thinline
 England, 1831, a proud little mill town on a river. Bright sunny day, the explanation part at golden hour.
 Comic and a bit absurd. Upbeat brass march. Lots of camera energy around the collapse.
 ```
@@ -58,23 +59,19 @@ Write it in plain language. It sets three things:
   any voice line, `voices/default.txt` is used if it exists.
 
 ### `## Style` (optional)
-A few sentences about the look and feel. The engine is always the "2D cartoon characters in a painted 3D world" style
-of claude-animated-shorts. The style text steers what goes inside it:
+Two parts, both optional:
 
-- place and era
-- time of day and light
-- palette and mood
-- character types
-- camera energy
-- music feel
-- sound world
+- `Style: <name>` picks the art style. The name is a folder in `/root/code/videos/styles/`, for example
+  `Style: sci-fi-sitcom-thinline`. Without it, the only style is used, or the closest match if there are several.
+- A few sentences about what goes inside that style: place and era, time of day, mood, character types, sound.
 
-See `style-mapping.md` for how each phrase becomes concrete settings. The default is the template look: sunny day, a
-golden-hour section for any reflective part, and an upbeat original score.
+Each style has fixed rules for line, colour, people and motion (its skill is
+`/root/code/videos/.claude/skills/<name>/SKILL.md`). If the style text asks for something those rules forbid, the
+style's rules win.
 
 ### `## Notes` (optional)
-Anything else. For example `Resolution: 720p | 1080p | 2K | 4K` (default 1080p, i.e. 1080x1920), "captions on" (off by default), "keep it under 60 s", "end on the bridge wide shot",
-"no music, SFX only".
+Anything else. For example "keep it under 60 s" or "end on the wide shot". Frame size and shape come from the
+style, not from the brief.
 
 ## What the user does NOT need to provide
 - shot lists, camera moves or timings, which are derived from the voice's word timings

@@ -1,6 +1,6 @@
 ---
 name: narrated-short
-description: End-to-end, fully automated production of a narrated animated vertical short from a user brief (script + notes on pauses/delivery + a short style description). Makes the narration with the local Breeze TTS (/root/code/breeze_tts/mod.py), transcribes it to get timings, then hands the audio and its .srt to the claude-animated-shorts pipeline to build and render the video with Remotion (1080x1920 by default). Use when the user says "make a short/video from briefs/<x>.md", "run the full pipeline", "here's my script, make the video", or invokes /narrated-short.
+description: End-to-end, fully automated production of a narrated animated short from a user brief (script + notes on pauses/delivery + a style). Makes the narration with the local Breeze TTS (/root/code/breeze_tts/mod.py), transcribes it to get timings, picks an art style from /root/code/videos/styles, then hands the audio and its .srt to a new agent that follows that style's skill (/root/code/videos/.claude/skills/<style>/SKILL.md) to build and render the video. Use when the user says "make a short/video from briefs/<x>.md", "run the full pipeline", "here's my script, make the video", or invokes /narrated-short.
 ---
 
 # Labels
@@ -58,8 +58,38 @@ cd /root/code/orchestration/outputs/<label> && transcribe <label>.wav
 
 It writes `<label>.srt` next to it.
 
+# Style
+
+Every art style is one folder in `/root/code/videos/styles/`. Each style has a skill with the same name that teaches
+how to make a video in it: `/root/code/videos/.claude/skills/<style>/SKILL.md`.
+
+1. List the styles with `ls /root/code/videos/styles`.
+2. Pick one, without asking:
+   - If the brief names a style (a `Style: <name>` line, or the folder name anywhere in its style text), use it.
+   - If only one style exists, use it.
+   - Otherwise read the `description` at the top of each style's SKILL.md and take the best match for the brief.
+3. The rest of the brief's style text (place, era, mood, characters, sound) is direction for the video inside that
+   style. Where it asks for something the style's rules forbid, the style's rules win.
+
 # Video
 
-Spawn a new agent with `model: "opus"` (Opus 5.5) and `effort: "high"` that reads `/root/code/videos/claude-animated-shorts/SKILL.md` and follows it to create the
-video with Remotion, using `outputs/<label>/<label>.wav` and `outputs/<label>/<label>.srt` plus the brief's style
-description. Tell it to save the final render as `outputs/<label>/<label>.mp4`.
+Spawn a new agent with `model: "opus"` (Opus 5.5) and `effort: "high"` that reads
+`/root/code/videos/.claude/skills/<style>/SKILL.md` and follows it to make a new video in that style, using
+`outputs/<label>/<label>.wav` and `outputs/<label>/<label>.srt` plus the brief's style text. Tell it:
+
+- **Name.** The video is called `<label>`. The style's skill says where a new video's folder goes. If a folder with
+  that name is already there, it belongs to another video: add a number, never overwrite it.
+- **Timing.** The narration sets the timeline. Take every scene and beat time from the `.srt`, so each picture is on
+  screen while its words are spoken. The video is as long as the `.wav` plus about one second.
+- **Sound.** The narration is the main audio. The style's render gives the picture with the style's own sound
+  effects and no voice, so mix the narration over it with the effects turned down:
+
+  ```bash
+  ffmpeg -y -i <the style's render>.mp4 -i /root/code/orchestration/outputs/<label>/<label>.wav -filter_complex \
+    "[0:a]volume=-10dB[fx];[1:a]aresample=48000,pan=stereo|c0=c0|c1=c0[vo];[fx][vo]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.89:level=false[a]" \
+    -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k /root/code/orchestration/outputs/<label>/<label>.mp4
+  ```
+
+- **Files.** The mixed file above, `outputs/<label>/<label>.mp4`, is the final video. Stills, scratch files and
+  `TMPDIR` go in `outputs/<label>/build/`.
+- **Format.** Frame size and shape are whatever the style renders. Do not force another one.
